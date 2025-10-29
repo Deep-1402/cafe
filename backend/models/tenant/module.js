@@ -1,7 +1,7 @@
 import { DataTypes } from "sequelize";
 
 const Modules = (sequelize) => {
-  sequelize.define(
+  return sequelize.define(
     "modules",
     {
       module_id: {

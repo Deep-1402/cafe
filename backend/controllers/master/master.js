@@ -17,6 +17,7 @@ import { sequelize, tenantSeqelize } from "../../config/config.js";
 import Users from "../../models/master/user.js";
 import { setupAssociations } from "../../models/tenant/associations.js";
 import Tenents from "../../models/master/tenants.js";
+import sendEmail from "../../config/mail.js";
 
 // let signUp = async (req, res) => {
 //   try {
@@ -95,77 +96,167 @@ import Tenents from "../../models/master/tenants.js";
 //   }
 // };
 
-
 const signUp = async (req, res) => {
   try {
     let data = req.body;
-    
+
     // Generate database name
     const dbname = `Qbot_tenant_${Buffer.from(data.subdomain)
       .toString("base64url")
       .replace(/[-_]/g, "")}`;
-    
+
     data.db_name = dbname;
-    
-    // Hash password before storing
-    if (data.password) {
-      data.password = await bcrypt.hash(data.password, 10);
-    }
+
+    data.password = await bcrypt.hash(data.password, 10);
     console.log(data);
-    
-    // Create tenant record in master DB
-    let tenant = await Tenents.create(data);
-
-    // Create tenant database
-    await sequelize.query(`CREATE DATABASE IF NOT EXISTS ${dbname}`);
-    
-    // Connect to tenant database
-    let tenantSequelize = tenantSeqelize(dbname);
-
-    // Initialize models
-    const models = {
-      Role: Roles(tenantSequelize),
-      Permission: Permissions(tenantSequelize),
-      User: tenantUsers(tenantSequelize),
-      Category: Categories(tenantSequelize),
-      Dishes: Dishes(tenantSequelize),
-      Order: Orders(tenantSequelize),
-      OrderItem: OrderItems(tenantSequelize),
-      Billing: Billing(tenantSequelize),
-      Feedback: Feedback(tenantSequelize),
-      Module: Modules(tenantSequelize),
-    };
-
-    // Setup associations
-    // await setupAssociations(tenantSequelize);
-
-    // Sync database
-    await tenantSequelize.sync({ force: false });
-    // Seed default roles and permissions
-    // await seedTenantDefaults(tenantSequelize);
-
-    // Create admin user for tenant
-    // const adminRole = await models.Role.findOne({ where: { name: "Admin" } });
-    await models.User.create({
-      username: data.restaurant_name,
-      email: data.email,
-      password: data.password, 
-      role_id: 1,
+    const found = await Tenents.findOne({
+      where: { subdomain: data.subdomain },
     });
+    if (found) {
+      return res.status(500).json({
+        message: "Tenant Alredy Exist",
+      });
+    } else {
+      // Create tenant record in master DB
+      let tenant = await Tenents.create(data);
 
-    res.status(201).json({
-      message: "Tenant created successfully",
-      data: {
-        tenant_id: tenant.tenant_id,
-        restaurant_name: tenant.restaurant_name,
-        subdomain: tenant.subdomain,
-        db_name: tenant.db_name,
-      },
-    });
+      // Create tenant database
+      await sequelize.query(`CREATE DATABASE IF NOT EXISTS ${dbname}`);
+
+      // Connect to tenant database
+      let tenantSequelize = tenantSeqelize(dbname);
+
+      // Initialize models
+      const models = {
+        Role: Roles(tenantSequelize),
+        Permission: Permissions(tenantSequelize),
+        User: tenantUsers(tenantSequelize),
+        Category: Categories(tenantSequelize),
+        Dishes: Dishes(tenantSequelize),
+        Order: Orders(tenantSequelize),
+        OrderItem: OrderItems(tenantSequelize),
+        Billing: Billing(tenantSequelize),
+        Feedback: Feedback(tenantSequelize),
+        Module: Modules(tenantSequelize),
+      };
+      console.log(models);
+      // Setup associations
+      await setupAssociations(models);
+
+      // Sync database
+      await tenantSequelize.sync({ force: false });
+      // Seed default roles and permissions
+      // await seedTenantDefaults(tenantSequelize);
+
+      // Create admin user for tenant
+      // const adminRole = await models.Role.findOne({ where: { name: "Admin" } });
+      // console.log("ee");
+
+      //@ Send OTP via email
+      // const message = `
+      //   Thank you for registering your company:${data.restaurant_name},
+      // `;
+      let message = `<!DOCTYPE html>
+                  <html lang="en">
+                  <head>
+                    <meta charset="UTF-8" />
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+                    <title>Subscription Activated</title>
+                  </head>
+                  <body style="margin:0;padding:0;background-color:#f4f6fa;font-family:'Segoe UI',Arial,Helvetica,sans-serif;">
+                    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f4f6fa;padding:30px 0;">
+                      <tr>
+                        <td align="center">
+                          <table role="presentation" width="600" cellspacing="0" cellpadding="0" style="background:#ffffff;border-radius:10px;overflow:hidden;box-shadow:0 5px 15px rgba(0,0,0,0.08);">
+                            
+                            <!-- Header -->
+                            <tr>
+                              <td style="background:linear-gradient(90deg,#ff7a18,#ffb347);padding:20px 30px;text-align:center;color:#fff;">
+                                <h1 style="margin:0;font-size:22px;">Welcome to ${data.restaurant_name} 🎉</h1>
+                              </td>
+                            </tr>
+                            
+                            <!-- Body -->
+                            <tr>
+                              <td style="padding:30px;">
+                                <h2 style="margin:0 0 10px 0;font-size:20px;color:#222;">Hi <span style="color:#ff7a18;">${data.restaurant_name}</span>,</h2>
+                                <p style="margin:0 0 16px 0;color:#555;font-size:15px;line-height:1.6;">
+                                  We’re excited to have you onboard! Your subscription plan is now <strong style="color:#16a34a;">active</strong>.
+                                </p>
+
+                                <p style="margin:0 0 16px 0;color:#555;font-size:15px;line-height:1.6;">
+                                  You can start managing your restaurant right away from your dashboard.
+                                </p>
+
+                                <div style="text-align:center;margin:26px 0;">
+                                  <a href="${data.subdomain}" 
+                                    style="background:#ff7a18;color:#fff;text-decoration:none;padding:12px 25px;border-radius:8px;font-weight:bold;font-size:15px;display:inline-block;">
+                                    Go to Your Dashboard
+                                  </a>
+                                </div>
+
+                                <table role="presentation" width="100%" style="background:#f7fafc;border-radius:8px;padding:14px;border:1px solid #e5e7eb;margin-top:15px;">
+                                  <tr>
+                                    <td>
+                                      <div style="font-size:14px;color:#374151;line-height:1.5;">
+                                        <strong>Restaurant Name:</strong> ${data.restaurant_name}<br/>
+                                        <strong>Subdomain:</strong> <a href="${data.subdomain}" style="color:#0b74de;text-decoration:none;">${data.subdomain}</a><br/>
+                                        <strong>Status:</strong> Active ✅s
+                                      </div>
+                                    </td>
+                                  </tr>
+                                </table>
+
+                                <p style="margin-top:20px;font-size:14px;color:#666;">
+                                  Thank you for choosing <strong>${data.restaurant_name}</strong>! We’re here to help your restaurant grow.
+                                </p>
+                              </td>
+                            </tr>
+
+                            <!-- Footer -->
+                            <tr>
+                              <td style="background:#f9fafb;padding:15px 30px;text-align:center;color:#888;font-size:13px;border-top:1px solid #e5e7eb;">
+                                © 2025 ${data.restaurant_name}. All rights reserved. <br>
+                                <a href="mailto:support@yourapp.com" style="color:#0b74de;text-decoration:none;">Contact Support</a>
+                              </td>
+                            </tr>
+
+                          </table>
+                        </td>
+                      </tr>
+                    </table>
+                  </body>
+                  </html>`;
+      await sendEmail(
+        data.email,
+        `Welcome to ${data.restaurant_name}`,
+        message
+      );
+      //@ Send OTP via email
+
+      let info = await models.User.create({
+        username: data.restaurant_name,
+        email: data.email,
+        password: data.password,
+        role_id: null,
+      });
+      // console.log("ee");
+
+      // console.log(info)
+      res.status(201).json({
+        message: "Tenant created successfully",
+        data: {
+          tenant_id: tenant.tenant_id,
+          restaurant_name: tenant.restaurant_name,
+          subdomain: tenant.subdomain,
+          db_name: tenant.db_name,
+        },
+      });
+    }
   } catch (error) {
     res.status(500).json({
       error: error.message,
-      e : error
+      e: error,
     });
   }
 };
@@ -184,8 +275,8 @@ let login = async (req, res) => {
         log: "Invalid Email!! Try Again",
       });
     }
-    // let match = await bcrypt.compare(password, found.password);
-    let match = password == found.password;
+    let match = await bcrypt.compare(password, found.password);
+    // let match = password == found.password;
     if (!match) {
       res.status(500).json({
         log: "Invalid Password!!Try Again",
