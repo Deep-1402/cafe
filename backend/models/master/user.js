@@ -10,16 +10,16 @@ const Users = sequelize.define(
       primaryKey: true,
     },
     name: {
-      type: DataTypes.STRING(100),
+      type: DataTypes.STRING(30),
       allowNull: false,
     },
     email: {
-      type: DataTypes.STRING(150),
+      type: DataTypes.STRING(30),
       allowNull: false,
       unique: true,
     },
     password: {
-      type: DataTypes.STRING(255),
+      type: DataTypes.STRING(100),
       allowNull: false,
     },
   },

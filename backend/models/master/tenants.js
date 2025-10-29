@@ -33,18 +33,24 @@ const Tenents = sequelize.define(
       allowNull: false,
       comment: "Admin",
     },
+    password : {
+      type : DataTypes.STRING(100),
+      allowNull : true
+    },  
     plan_id: {
       type: DataTypes.INTEGER(3),
       comment: "Subscription",
       allowNull: false,
     },
     end_date: {
-      type: DataTypes.DATE,
+      type: DataTypes.DATEONLY,
       comment: "Subscription",
+      allowNull : true
     },
-    payment: {
-      type: DataTypes.ENUM("Online", "Cash"),
+    is_payment_done: {
+      type: DataTypes.BOOLEAN,
       allowNull: false,
+      defaultValue: true
     },
     db_name: {
       type: DataTypes.STRING(40),
