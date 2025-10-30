@@ -5,6 +5,8 @@ The MERN Project With The Implementation of SaaS Multi Tenant Workflow
 i want to create an SaaS application tenant based architecture MERN Project but i am stuck on  the feature role based access basically i have idea in my mind about I Will be creating Restaurant based Saas application  where restaurant can sign up by master and take subscription plan monthly and i have decided some models for master as well as tenant like master have one master (static master) and then tenant (restaurant info, domainname , subscribed plan, etc...) then subscription plans and then global setting like two step verification when login and then tenant can have  sparate db and they have model like menu , catagory , order, biiling, feedback , users, roles(admin manager chef waiter) and the database can create dynamically by sequelize as well as their tenant schema so master and tenant have saparate dababase and i want it like just backend for now like dotenv express nodemon sequlize mysql and jsonwebtoken cors add bcrypt nodemailer and before all that i want to know about role based access in tenant how it works 
 
 
+//i have a SaaS Applicastion just Assume a restorant based saas application and where master db have tables like master(static master) , subscription , tenant and tenant db  (which is created dynamically when master create table with sequelize instance ) and
+
 =====
 ***MOdules***
 =====

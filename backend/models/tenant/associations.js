@@ -1,65 +1,3 @@
-// export const setupAssociations = (models) => {
-//   // const {
-//   //   // Role ,
-//   //   // Permission,
-//   //   // User,
-//   //   // Category,
-//   //   // Dishes,
-//   //   // Order,
-//   //   // OrderItem,
-//   //   // Billing,
-//   //   // Feedback,
-//   //   // Modules
-//     Roles,
-//     Billing,
-//     Categories,
-//     Feedback,
-//     Modules,
-//     Orders,
-//     OrderItems,
-//     tenantUsers,
-//     Dishes,
-//     Permission,
-//   // } = models;
-//   // const { Role, Permission, User, Category, Menu, Order, OrderItem, Billing, Feedback } = models;
-
-//   console.log("dd")
-//   // Role <-> Permissions
-//   Roles.hasMany(Permission, { foreignKey: "role_id", as: "permissions" });
-//   Permission.belongsTo(Roles, { foreignKey: "role_id", as: "role" });
-//   // Role <-> User
-//   Roles.hasMany(tenantUsers, { foreignKey: "role_id", as: "users" });
-//   tenantUsers.belongsTo(Roles, { foreignKey: "role_id", as: "role" });
-
-//   // Category <-> Menu
-//   Categories.hasMany(Dishes, { foreignKey: "category_id", as: "menus" });
-//   Dishes.belongsTo(Categories, { foreignKey: "category_id", as: "category" });
-
-//   // User <-> Order (Waiter)
-//   tenantUsers.hasMany(Orders, { foreignKey: "waiter_id", as: "orders" });
-//   Orders.belongsTo(User, { foreignKey: "waiter_id", as: "waiter" });
-
-//   // Order <-> OrderItem
-//   Orders.hasMany(OrderItems, { foreignKey: "order_id", as: "items" });
-//   OrderItems.belongsTo(Orders, { foreignKey: "order_id", as: "order" });
-
-//   // Menu <-> OrderItem
-//   Dishes.hasMany(OrderItems, { foreignKey: "menu_id", as: "orderItems" });
-//   OrderItems.belongsTo(Dishes, { foreignKey: "menu_id", as: "menu" });
-
-//   // Order <-> Billing
-//   Orders.hasOne(Billing, { foreignKey: "order_id", as: "billing" });
-//   Billing.belongsTo(Orders, { foreignKey: "order_id", as: "order" });
-
-//   // Order <-> Feedback
-//   Orders.hasOne(Feedback, { foreignKey: "order_id", as: "feedback" });
-//   Feedback.belongsTo(Orders, { foreignKey: "order_id", as: "order" });
-
-//   // modules <-> Permmisssions
-//   Modules.hasMany(Permission, { foreignKey: "module_id"});
-//   Permission.belongsTo(Modules, { foreignKey: "module_id"});
-// };
-
 export const setupAssociations = (models) => {
   const {
     Role,
@@ -72,6 +10,8 @@ export const setupAssociations = (models) => {
     Billing,
     Feedback,
     Module,
+    Chat,
+    Message
   } = models;
 
   // Role <-> User
@@ -108,4 +48,14 @@ export const setupAssociations = (models) => {
   // modules <-> Permmisssions
   Module.hasMany(Permission, { foreignKey: "module_id" });
   Permission.belongsTo(Module, { foreignKey: "module_id" });
+
+  // Chat <-> Message
+  Chat.hasMany(Message, { foreignKey: "chat_id" });
+  Message.belongsTo(Chat, { foreignKey: "chat_id" });
+
+  // Chat <-> User
+  User.hasMany(Chat, { foreignKey: "sender_id" });
+  Chat.belongsTo(User, { foreignKey: "sender_id" });
+  User.hasMany(User, { foreignKey: "receiver_id" });
+  Chat.belongsTo(User, { foreignKey: "receiver_id" });
 };

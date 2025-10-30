@@ -1,3 +1,4 @@
+let db = "qbot_tenant_ymhwda";
 // import { Tenants } from "../models/master/association";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
@@ -15,14 +16,16 @@ import { setupAssociations } from "../../models/tenant/associations.js";
 import { Subscription, Tenants } from "../../models/master/association.js";
 import { tenantSeqelize } from "../../config/config.js";
 import { Op } from "sequelize";
+import Chat from "../../models/tenant/chat.js";
+import Message from "../../models/tenant/message.js";
 
-const getTenantConnection = async (subdomain) => {
+const getTenantConnection = async (email) => {
   try {
     // Find tenant in master database
     const tenant = await Tenants.findOne({
-      where: { [Op.and]: [{ email: subdomain }] },
+      where: { [Op.and]: [{ email: email }] },
     });
-    console.log(tenant.is_active, !tenant.is_active)
+    // console.log(tenant.is_active, !tenant.is_active);
     if (!tenant) {
       throw new Error("Domain not found");
     }
@@ -47,7 +50,7 @@ const getTenantConnection = async (subdomain) => {
     const sequelize = tenantSeqelize(dbName);
 
     // Test connection
-    // let connected = await sequelize.authenticate();
+    let connected = await sequelize.authenticate();
     // console.log(sequelize);
 
     console.log("Tenent Connected SuccessFully");
@@ -63,11 +66,14 @@ const getTenantConnection = async (subdomain) => {
       Billing: Billing(sequelize),
       Feedback: Feedback(sequelize),
       Module: Modules(sequelize),
+      Chat: Chat(sequelize),
+      Message: Message(sequelize),
     };
     // console.log(models)
     // Setup associations
     await setupAssociations(models);
 
+    await sequelize.sync({ alter: true });
     // Cache the connection
     // const connection = { sequelize, models };
 
@@ -79,13 +85,13 @@ const getTenantConnection = async (subdomain) => {
 
 const login = async (req, res) => {
   try {
-    let {  email, subdomain, password } = req.body;
+    let { email, subdomain, password } = req.body;
     // [email, subdomain] = [subdomain, email];
     // Get tenant connection
     const { models, tenant } = await getTenantConnection(email);
     const { User, Role, Permission, Module } = models;
     // [email, subdomain] = [subdomain, email];
-    console.log(email, subdomain)
+    // console.log(email, subdomain);
     // console.log(models, "sfs");
 
     // Find user by email
@@ -131,20 +137,169 @@ const login = async (req, res) => {
       where: { role_id: user.role_id },
       include: [
         {
-          model: Module,
-          as: "module",
-          attributes: ["module_id", "name"],
+          model: Role,
+          as: "role",
+          attributes: ["role_id", "name"],
         },
       ],
     });
-    console.log(permissions);
+    // console.log(permissions);
 
     // JWT Payload
     const payload = {
       user_id: user.user_id,
       email: user.email,
       role_id: user.role_id,
-      subdomain : subdomain
+      subdomain: subdomain,
+    };
+    // console.log(payload)
+
+    // Generate tokens
+    let token = jwt.sign(payload, process.env.JWT_TOKEN, {
+      expiresIn: process.env.JWT_EXPIRE,
+    });
+
+    // Response data
+    // const userData = {
+    //     userData : user
+    // //   user_id: user.user_id,
+    // //   username: user.username,
+    // //   email: user.email,
+    // //   role: {
+    // //     role_id: user.role.role_id,
+    // //     name: user.role.name,
+    // //     description: user.role.description,
+    // //   },
+    // //   permissions: userPermissions,
+    // //   tenant: {
+    // //     tenant_id: tenant.tenant_id,
+    // //     restaurant_name: tenant.restaurant_name,
+    // //     subdomain: tenant.subdomain,
+    // //   },
+    // };
+
+    res.status(200).json({
+      message: `Welcome To, ${user.username}! :)`,
+      data: {
+        user: permissions,
+        token: token,
+      },
+    });
+  } catch (error) {
+    console.error("Login error:", error);
+    res.status(500).json({
+      error: error,
+      message: error.message,
+    });
+  }
+};
+
+export const getTanantConnection = async () => {
+  // Create new connection
+  const sequelize = tenantSeqelize(db);
+
+  // Test connection
+  await sequelize.authenticate();
+  // await sequelize.sync({ alter: true });
+  // console.log(sequelize);
+
+  console.log("Tenent Connected SuccessFully");
+  // Initialize models
+  const models = {
+    Role: Roles(sequelize),
+    Permission: Permissions(sequelize),
+    User: tenantUsers(sequelize),
+    Category: Categories(sequelize),
+    Dishes: Dishes(sequelize),
+    Order: Orders(sequelize),
+    OrderItem: OrderItems(sequelize),
+    Billing: Billing(sequelize),
+    Feedback: Feedback(sequelize),
+    Module: Modules(sequelize),
+    Chat: Chat(sequelize),
+    Message: Message(sequelize),
+  };
+  // console.log(models)
+  // Setup associations
+  await setupAssociations(models);
+  // await sequelize.sync({alter:true});
+  return { models };
+};
+ 
+
+ const userLogin = async (req, res) => {
+  try {
+    let { email, subdomain, password } = req.body;
+    // [email, subdomain] = [subdomain, email];
+    // Get tenant connection
+    //@@
+    const { models } = await getTanantConnection();
+    // const { User, Role, Permission, Module } = models;
+    //@@
+
+    // const { models, tenant } = await getTenantConnection(email);
+    // const { User, Role, Permission, Module } = models;
+    // [email, subdomain] = [subdomain, email];
+    // console.log(email, subdomain);
+    // console.log(models, "sfs");
+
+    // Find user by email
+    const user = await models.User.findOne({
+      where: { email },
+      //   include: [
+      //     {
+      //       model: Role,
+      //       as: "role",
+      //       attributes: ["role_id", "name", "description"],
+      //     },
+      //   ],
+    });
+
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid email or password",
+      });
+    }
+
+    // Check if user is active
+    if (!user.is_active) {
+      return res.status(403).json({
+        success: false,
+        message:
+          "Your account has been deactivated. Please contact administrator.",
+      });
+    }
+
+    // Verify password
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+
+    if (!isPasswordValid) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid email or password",
+      });
+    }
+
+    // Get user permissions
+    const permissions = await models.Permission.findAll({
+      where: { role_id: user.role_id },
+      include: [
+        {
+          model: models.Role,
+          as: "role",
+          attributes: ["role_id", "name"],
+        },
+      ],
+    });
+    // console.log(permissions);
+
+    // JWT Payload
+    const payload = {
+      user_id: user.user_id,
+      email: user.email,
+      role_id: user.role_id,
+      // subdomain: subdomain,
     };
     // console.log(payload)
 
@@ -326,6 +481,31 @@ const createPermission = async (req, res) => {
     });
   }
 };
+const getPermisionByRoles = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { models, tenant } = await getTenantConnection(req.jwtData.email);
+    const { Permission, Role } = models;
+    const exists = await Permission.findOne({
+      include: [
+        {
+          model: Role,
+          as: "role",
+          attributes: ["role_id", "name"],
+        },
+      ],
+      where: {
+        [Op.and]: [{ role_id: id }],
+      },
+    });
+    res.status(201).json({ message: "Permission by Role", data: exists });
+  } catch (error) {
+    res.status(500).json({
+      message: "Permission creating error",
+      error: error.message ?? error,
+    });
+  }
+};
 
 // const updatePlane = async (req, res) => {
 //   try {
@@ -368,6 +548,8 @@ const exportedModules = {
   createRole,
   createModule,
   createPermission,
+  getPermisionByRoles,
+  userLogin,
 };
 export default exportedModules;
 export { getTenantConnection };

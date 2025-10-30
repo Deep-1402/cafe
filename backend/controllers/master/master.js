@@ -18,6 +18,8 @@ import Users from "../../models/master/user.js";
 import { setupAssociations } from "../../models/tenant/associations.js";
 import Tenents from "../../models/master/tenants.js";
 import sendEmail from "../../config/mail.js";
+import Chat from "../../models/tenant/chat.js";
+import Message from "../../models/tenant/message.js";
 
 // let signUp = async (req, res) => {
 //   try {
@@ -138,6 +140,8 @@ const signUp = async (req, res) => {
         Billing: Billing(tenantSequelize),
         Feedback: Feedback(tenantSequelize),
         Module: Modules(tenantSequelize),
+        Chat: Chat(tenantSequelize),
+        Message: Message(tenantSequelize),
       };
       console.log(models);
       // Setup associations
@@ -222,12 +226,12 @@ const signUp = async (req, res) => {
                     </table>
                   </body>
                   </html>`;
-
+      await models.Role.create({ role_id: 1, name: "Super Admin" });
       let info = await models.User.create({
         username: data.restaurant_name,
         email: data.email,
         password: data.password,
-        role_id: null,
+        role_id: 1,
       });
       // console.log("ee");
       //@ Send OTP via email
@@ -244,12 +248,12 @@ const signUp = async (req, res) => {
           restaurant_name: tenant.restaurant_name,
           subdomain: tenant.subdomain,
           db_name: tenant.db_name,
-          mail : mail
+          mail: mail,
         },
       });
     }
   } catch (error) {
-    res.status(500).json({
+    return res.status(500).json({
       error: error.message,
       e: error,
     });
@@ -298,64 +302,9 @@ let login = async (req, res) => {
   }
 };
 
-let getProducts = async (req, res) => {
-  try {
-    let data = await Products.findAll({
-      attributes: ["name", "details", "image"],
-      include: {
-        as: "attributes",
-        model: Attributes,
-        attributes: ["name"],
-        include: {
-          as: "values",
-          model: Varient,
-          attributes: ["name", "price", "qunatity"],
-        },
-      },
-    });
-    res.status(200).json({
-      log: "All Products with Available ",
-      data: data,
-    });
-  } catch (error) {
-    res.status(500).json({
-      error: error.message ?? error,
-    });
-  }
-};
-
-// Add
-let addVarients = async (req, res) => {
-  try {
-    let data = req.body;
-    let found = await Attributes.findByPk(data.varient_id);
-    if (!found) {
-      res.status(500).json({
-        log: `Attribute Not found At ypur Specific id ${data.product_id}`,
-      });
-    }
-    // value, price, quantity
-    let info = await Varient.create(data);
-    res.status(200).json({
-      log: `'${info.name}' Varient Is Created for '${found.varient_id}'`,
-      data: info,
-    });
-  } catch (error) {
-    res.status(500).json({
-      log: error.message ?? error,
-    });
-  }
-};
-
 const exportedModules = {
   signUp,
   login,
-
-  //get
-  getProducts,
-
-  //add
-  addVarients,
 };
 
 export default exportedModules;
