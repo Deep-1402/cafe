@@ -39,14 +39,12 @@ const Tenents = sequelize.define(
       allowNull: false,
     },
     end_date: {
-      type: DataTypes.DATEONLY,
+      type: DataTypes.DATE,
       comment: "Subscription",
-      allowNull : true
     },
-    is_payment_done: {
-      type: DataTypes.BOOLEAN,
+    payment: {
+      type: DataTypes.ENUM("Online", "Cash"),
       allowNull: false,
-      defaultValue: true
     },
     db_name: {
       type: DataTypes.STRING(40),

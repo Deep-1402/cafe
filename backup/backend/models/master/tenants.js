@@ -33,6 +33,7 @@ const Tenents = sequelize.define(
       allowNull: false,
       comment: "Admin",
     },
+
     plan_id: {
       type: DataTypes.INTEGER(3),
       comment: "Subscription",

@@ -14,7 +14,6 @@ import Feedback from "../../models/tenant/feedback.js";
 import { setupAssociations } from "../../models/tenant/associations.js";
 import { Subscription, Tenants } from "../../models/master/association.js";
 import { tenantSeqelize } from "../../config/config.js";
-import { Op } from "sequelize";
 
 const getTenantConnection = async (email) => {
   try {
@@ -155,7 +154,6 @@ const login = async (req, res) => {
       email: user.email,
       role_id: user.role_id,
     };
-    // console.log(payload)
 
     // Generate tokens
     let token = jwt.sign(payload, process.env.JWT_TOKEN, {
@@ -215,19 +213,21 @@ const createUser = async (req, res) => {
         message: "Role not found",
       });
     }
-
+    
     const totalUser = await User.count();
     const limit = await Subscription.findByPk(tenant.plan_id);
-    if (!limit) {
+    if(!limit){
       return res.status(404).json({
         message: "Subscription not found",
       });
     }
-    if (totalUser >= limit.max_users) {
+    if(totalUser >= limit.max_users){
       return res.status(404).json({
         message: "Max User Limit Reached not found",
       });
+      
     }
+
 
     // Check if email already exists
     const existingUser = await User.findOne({ where: { email: data.email } });

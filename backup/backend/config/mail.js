@@ -1,6 +1,4 @@
 import { createTransport } from "nodemailer";
-import dotenv from "dotenv";
-dotenv.config({ quiet: true });
 
 const sendEmail = async (to, subject, html) => {
   try {

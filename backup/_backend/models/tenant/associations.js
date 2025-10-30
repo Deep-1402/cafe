@@ -21,6 +21,7 @@
 //     Dishes,
 //     Permission,
 //   // } = models;
+  
 //   // const { Role, Permission, User, Category, Menu, Order, OrderItem, Billing, Feedback } = models;
 
 //   console.log("dd")
@@ -60,6 +61,9 @@
 //   Permission.belongsTo(Modules, { foreignKey: "module_id"});
 // };
 
+
+
+
 export const setupAssociations = (models) => {
   const {
     Role,
@@ -71,23 +75,24 @@ export const setupAssociations = (models) => {
     OrderItem,
     Billing,
     Feedback,
-    Module,
+    Modules
   } = models;
+
+  // Role <-> Permission
+  Role.hasMany(Permission, { foreignKey: "role_id", as: "permissions" });
+  Permission.belongsTo(Role, { foreignKey: "role_id", as: "role" });
 
   // Role <-> User
   Role.hasMany(User, { foreignKey: "role_id", as: "users" });
   User.belongsTo(Role, { foreignKey: "role_id", as: "role" });
 
-  // Role <-> Permission
-  Role.hasMany(Permission, { foreignKey: "role_id", as: "permissions" });
-  Permission.belongsTo(Role, { foreignKey: "role_id", as: "role" });
   // Category <-> Menu
-  Category.hasMany(Dishes, { foreignKey: "category_id", as: "menus" });
-  Dishes.belongsTo(Category, { foreignKey: "category_id", as: "category" });
+  Category.hasMany(Menu, { foreignKey: "category_id", as: "menus" });
+  Menu.belongsTo(Category, { foreignKey: "category_id", as: "category" });
 
   // User <-> Order (Waiter)
-  User.hasMany(Order, { foreignKey: "user_id", as: "orders" });
-  Order.belongsTo(User, { foreignKey: "user_id", as: "waiter" });
+  User.hasMany(Order, { foreignKey: "waiter_id", as: "orders" });
+  Order.belongsTo(User, { foreignKey: "waiter_id", as: "waiter" });
 
   // Order <-> OrderItem
   Order.hasMany(OrderItem, { foreignKey: "order_id", as: "items" });
@@ -106,6 +111,6 @@ export const setupAssociations = (models) => {
   Feedback.belongsTo(Order, { foreignKey: "order_id", as: "order" });
 
   // modules <-> Permmisssions
-  Module.hasMany(Permission, { foreignKey: "module_id" });
-  Permission.belongsTo(Module, { foreignKey: "module_id" });
-};
+  Modules.hasMany(Permission, { foreignKey: "module_id"});
+  Permission.belongsTo(Modules, { foreignKey: "module_id"});
+}

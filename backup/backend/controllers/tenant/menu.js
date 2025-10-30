@@ -7,25 +7,28 @@ const createDish = async (req, res) => {
     // Validation
     if (!data.category_id || !data.name || !data.price) {
       return res.status(400).json({
+        success: false,
         message: "Category, name, and price are required",
       });
     }
 
     // Get tenant connection
-    const { models } = await getTenantConnection(req.jwtData.email);
+    const { models } = await getTenantConnection(req.user.email);
     const { Dishes, Category } = models;
 
     // Check if category exists
     const category = await Category.findByPk(data.category_id);
     if (!category) {
       return res.status(404).json({
+        success: false,
         message: "Category not found",
       });
     }
 
     // Validate price
-    if (parseFloat(data.price) < 0) {
+    if (parseFloat(price) < 0) {
       return res.status(500).json({
+        success: false,
         message: "Price cannot be negative",
       });
     }
@@ -35,13 +38,13 @@ const createDish = async (req, res) => {
 
     // Get dish with category
     const dishWithCategory = await Dishes.findByPk(dish.menu_id, {
-      // include: [
-      //   {
-      //     model: Category,
-      //     as: "category",
-      //     attributes: ["category_id", "name"],
-      //   },
-      // ],
+      include: [
+        {
+          model: Category,
+          as: "category",
+          attributes: ["category_id", "name"],
+        },
+      ],
     });
 
     res.status(201).json({
@@ -56,21 +59,20 @@ const createDish = async (req, res) => {
     });
   }
 };
-
 const updateDish = async (req, res) => {
   try {
     const { id } = req.params;
     const updateData = req.body;
 
     // Get tenant connection
-    const { models } = await getTenantConnection(req.jwtData.email);
+    const { models } = await getTenantConnection(req.user.email);
     const { Dishes, Category } = models;
 
     // Check if dish exists
     const dish = await Dishes.findByPk(id);
     if (!dish) {
       return res.status(404).json({
-        error : error,
+        success: false,
         message: "Dish not found",
       });
     }
@@ -80,7 +82,7 @@ const updateDish = async (req, res) => {
       const category = await Category.findByPk(updateData.category_id);
       if (!category) {
         return res.status(404).json({
-          error : error,
+          success: false,
           message: "Category not found",
         });
       }
@@ -89,7 +91,7 @@ const updateDish = async (req, res) => {
     // Validate price if being updated
     if (updateData.price !== undefined && parseFloat(updateData.price) < 0) {
       return res.status(400).json({
-        error : error,
+        success: false,
         message: "Price cannot be negative",
       });
     }
@@ -115,7 +117,7 @@ const updateDish = async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({
-      error : error,
+      success: false,
       message: error.message,
     });
   }
@@ -126,14 +128,14 @@ const deleteDish = async (req, res) => {
     const { id } = req.params;
 
     // Get tenant connection
-    const { models } = await getTenantConnection(req.jwtData.email);
+    const { models } = await getTenantConnection(req.user.email);
     const { Dishes } = models;
 
     // Check if dish exists
     const dish = await Dishes.findByPk(id);
     if (!dish) {
       return res.status(404).json({
-        error : error,
+        success: false,
         message: "Dish not found",
       });
     }
@@ -147,7 +149,7 @@ const deleteDish = async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({
-      error : error,
+      success: false,
       message: error.message,
     });
   }
@@ -156,7 +158,7 @@ const deleteDish = async (req, res) => {
 const getAllAvailableDishes = async (req, res) => {
   try {
     // Get tenant connection
-    const { models } = await getTenantConnection(req.jwtData.email);
+    const { models } = await getTenantConnection(req.user.email);
     const { Dishes, Category } = models;
 
     // Get All dish
@@ -172,13 +174,15 @@ const getAllAvailableDishes = async (req, res) => {
     });
 
     res.status(200).json({
-      message: `All Dishes Availble"
+      success: true,
+      message: `Dish ${
+        newStatus ? "marked as available" : "marked as unavailable"
       }`,
       data: allDishes,
     });
   } catch (error) {
     res.status(500).json({
-      error: error,
+      success: false,
       message: error.message,
     });
   }
