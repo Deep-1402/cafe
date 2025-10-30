@@ -1,0 +1,466 @@
+{
+	"info": {
+		"_postman_id": "bc4cb5d9-9822-4c8b-88ea-93cd4ae80f29",
+		"name": "Dev's Cafe",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "47209663",
+		"_collection_link": "https://dev1402-2596963.postman.co/workspace/Dev's-Workspace~f96db9d9-c7ab-4c5e-8938-98b7a888a5b5/collection/47209663-bc4cb5d9-9822-4c8b-88ea-93cd4ae80f29?action=share&source=collection_link&creator=47209663"
+	},
+	"item": [
+		{
+			"name": "Master",
+			"item": [
+				{
+					"name": "Subscription",
+					"item": [
+						{
+							"name": "Create",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"name\": \"Standard\",\r\n    \"description\": \"Bettr one\",\r\n    \"price\": 7899,\r\n    \"max_users\": 2\r\n    \r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{url}}master/subscription",
+									"host": [
+										"{{url}}master"
+									],
+									"path": [
+										"subscription"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "login",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"email\": \"brij@ac.in\",\r\n    \"password\": \"brij12\"\r\n    // \"email\": \"deep@ac.in\",\r\n    // \"password\": \"deep@12\"\r\n    //  \"email\" : \"ujj@ac.in\",\r\n    // \"password\" : \"ujj123\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}master/login",
+							"host": [
+								"{{url}}master"
+							],
+							"path": [
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Tenant Create",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"restaurant_name\": \"Bharelu Pet\",\r\n    \"subdomain\": \"bhpt\",\r\n    \"email\": \"pateldeep873873@gmail.com\",\r\n    \"password\": \"dev@12\",\r\n    \"plan_id\": 101\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}master/signup",
+							"host": [
+								"{{url}}master"
+							],
+							"path": [
+								"signup"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Tenat",
+			"item": [
+				{
+					"name": "catagory",
+					"item": [
+						{
+							"name": "Get all",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"name\": \"Appetizers\",\r\n    \"description\": \"Appetizers\"\r\n    //Appetizers, Side Dishes, Desserts, and Beverages\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{url}}tenant/catagory",
+									"host": [
+										"{{url}}tenant"
+									],
+									"path": [
+										"catagory"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Menu",
+					"item": [
+						{
+							"name": "Create",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"category_id\" : 2,\r\n    \"name\" : \"Salad\",\r\n    \"description\" : \"Salad\",\r\n    \"price\" : 50,\r\n    \"preparation_time\" : 10\r\n    // is_vegetarian, is_available\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{url}}tenant/menu",
+									"host": [
+										"{{url}}tenant"
+									],
+									"path": [
+										"menu"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Update By Id",
+							"request": {
+								"method": "PATCH",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"name\": \"Appetizers\",\r\n    \"description\": \"Startters\"\r\n    //Appetizers, Side Dishes, Desserts, and Beverages\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{url}}tenant/menu/1",
+									"host": [
+										"{{url}}tenant"
+									],
+									"path": [
+										"menu",
+										"1"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get By Id",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"name\": \"Appetizers\",\r\n    \"description\": \"Startters\"\r\n    //Appetizers, Side Dishes, Desserts, and Beverages\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{url}}tenant/menu/1",
+									"host": [
+										"{{url}}tenant"
+									],
+									"path": [
+										"menu",
+										"1"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Delete By Id",
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"name\": \"Appetizers\",\r\n    \"description\": \"Startters\"\r\n    //Appetizers, Side Dishes, Desserts, and Beverages\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{url}}tenant/menu/1",
+									"host": [
+										"{{url}}tenant"
+									],
+									"path": [
+										"menu",
+										"1"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Permission",
+					"item": [
+						{
+							"name": "Create Role",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"role_id\" : 2,\r\n    \"name\" : \"Admin\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{url}}tenant/role",
+									"host": [
+										"{{url}}tenant"
+									],
+									"path": [
+										"role"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Create Module",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"name\" : \"Menu\",\r\n    \"description\" : \"Menu\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{url}}tenant/module",
+									"host": [
+										"{{url}}tenant"
+									],
+									"path": [
+										"module"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Create Permission",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"role_id\" : 2,\r\n    \"module_id\" : 1,\r\n    \"can_create\": 1,\r\n    \"can_view\" :1,\r\n    \"can_edit\" : 1,\r\n    \"can_delete\" : 1\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{url}}tenant/permission",
+									"host": [
+										"{{url}}tenant"
+									],
+									"path": [
+										"permission"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "login",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"email\": \"pateldeep873873@gmail.com\",\r\n    \"password\": \"dev@12\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}tenant/login",
+							"host": [
+								"{{url}}tenant"
+							],
+							"path": [
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "User Create",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"username\" : \"Deval Jambukiya\",\r\n    \"email\": \"dev@ac.in\",\r\n    \"password\": \"dev@12\",\r\n    \"role_id\": 2\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}tenant/user",
+							"host": [
+								"{{url}}tenant"
+							],
+							"path": [
+								"user"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"auth": {
+				"type": "bearer",
+				"bearer": [
+					{
+						"key": "token",
+						"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxMDEsImVtYWlsIjoicGF0ZWxkZWVwODczODczQGdtYWlsLmNvbSIsInJvbGVfaWQiOjEsImlhdCI6MTc2MTc5MTM0OSwiZXhwIjoxNzYxNzkzMTQ5fQ.QyOQ5Vh8JD_p5U2Mgvmi2h767tpPTe1at3zPVS6S1ys",
+						"type": "string"
+					}
+				]
+			},
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {},
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {},
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE3NjE3OTMxMzIsImV4cCI6MTc2MTc5NDkzMn0.P_4VwYbXCwD8Xxu5OzWAzCvxtLOsy2iiqhtW6q5tt3w",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"requests": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"requests": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "url",
+			"value": ""
+		},
+		{
+			"key": "url",
+			"value": ""
+		}
+	]
+}

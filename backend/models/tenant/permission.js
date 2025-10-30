@@ -1,7 +1,7 @@
 import { DataTypes } from "sequelize";
 
 const Permissions = (sequelize) => {
-  sequelize.define(
+  return sequelize.define(
     "permissions",
     {
       permission_id: {

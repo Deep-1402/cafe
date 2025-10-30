@@ -14,10 +14,10 @@ const Billing = (sequelize) => {
         type: DataTypes.INTEGER,
         allowNull: false,
         unique: true,
-        references: {
-          model: "orders",
-          key: "order_id",
-        },
+        // references: {
+        //   model: "orders",
+        //   key: "order_id",
+        // },
       },
       invoice_number: {
         type: DataTypes.UUID,

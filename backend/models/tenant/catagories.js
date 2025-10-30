@@ -1,7 +1,7 @@
 import { DataTypes } from "sequelize";
 
 const Categories = (sequelize) => {
-  sequelize.define(
+  return sequelize.define(
     "categories",
     {
       category_id: {

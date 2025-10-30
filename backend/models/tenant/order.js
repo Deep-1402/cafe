@@ -1,7 +1,7 @@
 import { DataTypes } from "sequelize";
 
 const Orders = (sequelize) => {
-  sequelize.define(
+  return sequelize.define(
     "orders",
     {
       order_id: {
@@ -17,12 +17,13 @@ const Orders = (sequelize) => {
       table_no: {
         type: DataTypes.STRING(20),
       },
-      waiter_id: {
+      user_id: {
         type: DataTypes.INTEGER,
         // references: {
         //   model: "users",
         //   key: "user_id",
         // },
+        comment : "Waiter"
       },
       customer_name: {
         type: DataTypes.STRING(30),

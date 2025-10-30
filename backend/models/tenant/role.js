@@ -1,7 +1,7 @@
 import { DataTypes } from "sequelize";
 
 const Roles = (sequelize) => {
-  sequelize.define(
+  return sequelize.define(
     "roles",
     {
       role_id: {

@@ -8,13 +8,13 @@ import tenantUsers from "../../models/tenant/users.js";
 import Permissions from "../../models/tenant/permission.js";
 import Dishes from "../../models/tenant/Dishes.js";
 import Orders from "../../models/tenant/order.js";
-
 import Modules from "../../models/tenant/module.js";
 import Billing from "../../models/tenant/billing.js";
 import Feedback from "../../models/tenant/feedback.js";
 import { setupAssociations } from "../../models/tenant/associations.js";
-import { Tenants } from "../../models/master/association.js";
+import { Subscription, Tenants } from "../../models/master/association.js";
 import { tenantSeqelize } from "../../config/config.js";
+import { Op } from "sequelize";
 
 const getTenantConnection = async (email) => {
   try {
@@ -47,7 +47,9 @@ const getTenantConnection = async (email) => {
     const sequelize = tenantSeqelize(dbName);
 
     // Test connection
-    await sequelize.authenticate();
+    // let connected = await sequelize.authenticate();
+    // console.log(sequelize);
+
     console.log("Tenent Connected SuccessFully");
     // Initialize models
     const models = {
@@ -61,16 +63,15 @@ const getTenantConnection = async (email) => {
       Billing: Billing(sequelize),
       Feedback: Feedback(sequelize),
       Module: Modules(sequelize),
-      
     };
-
+    // console.log(models)
     // Setup associations
     // setupAssociations();
 
     // Cache the connection
-    const connection = { sequelize, models };
+    // const connection = { sequelize, models };
 
-    return { ...connection, tenant };
+    return { sequelize, models, tenant };
   } catch (error) {
     throw error;
   }
@@ -83,6 +84,7 @@ const login = async (req, res) => {
     // Get tenant connection
     const { models, tenant } = await getTenantConnection(email);
     const { User, Role, Permission, Module } = models;
+    // console.log(models, "sfs");
 
     // Find user by email
     const user = await User.findOne({
@@ -150,9 +152,10 @@ const login = async (req, res) => {
     // JWT Payload
     const payload = {
       user_id: user.user_id,
-      email : user.email,
+      email: user.email,
       role_id: user.role_id,
     };
+    // console.log(payload)
 
     // Generate tokens
     let token = jwt.sign(payload, process.env.JWT_TOKEN, {
@@ -196,15 +199,14 @@ const login = async (req, res) => {
 
 const createUser = async (req, res) => {
   try {
-
     const data = req.body;
     // const { username, email, role_id } = req.body;
-    const {email} = req.jwtData
+    const { email } = req.jwtData;
     // Get tenant connection
     // const tenantController = await import("./tenant.js");
     const { models, tenant } = await getTenantConnection(email);
     const { User, Role } = models;
-
+    // console.log(Role, User, models);
     // Check if role exists
     const role = await Role.findByPk(data.role_id);
     if (!role) {
@@ -214,8 +216,21 @@ const createUser = async (req, res) => {
       });
     }
 
+    const totalUser = await User.count();
+    const limit = await Subscription.findByPk(tenant.plan_id);
+    if (!limit) {
+      return res.status(404).json({
+        message: "Subscription not found",
+      });
+    }
+    if (totalUser >= limit.max_users) {
+      return res.status(404).json({
+        message: "Max User Limit Reached not found",
+      });
+    }
+
     // Check if email already exists
-    const existingUser = await User.findOne({ where: { email : data.email } });
+    const existingUser = await User.findOne({ where: { email: data.email } });
     if (existingUser) {
       return res.status(400).json({
         success: false,
@@ -268,10 +283,100 @@ const createUser = async (req, res) => {
     });
   }
 };
+const createRole = async (req, res) => {
+  try {
+    const data = req.body;
+    const { models } = await getTenantConnection(req.jwtData.email);
+    const { Role } = models;
+    // console.log(models, req.jwtData);
+    const exists = await Role.findOne({ where: { name: data.name } });
+    if (exists) return res.json({ message: "Role already exists" });
+    const info = await Role.create(data);
+    res.status(201).json({ message: "Role create succesfully" });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Role creating error", error: error.message });
+  }
+};
+const createModule = async (req, res) => {
+  try {
+    const data = req.body;
+    const { models, tenant } = await getTenantConnection(req.jwtData.email);
+    const { Module } = models;
+    const exists = await Module.findOne({ where: { name: data.name } });
+    if (exists) return res.json({ message: "Feature already exists" });
+    const info = await Module.create(data);
+    res.status(201).json({ message: "Feature create succesfully" });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Feature creating error", error: error.message });
+  }
+};
+const createPermission = async (req, res) => {
+  try {
+    const data = req.body;
+    const { models, tenant } = await getTenantConnection(req.jwtData.email);
+    const { Permission } = models;
+    const exists = await Permission.findOne({
+      where: {
+        [Op.and]: [{ role_id: data.role_id }, { module_id: data.module_id }],
+      },
+    });
+    if (exists)
+      return res.json({ message: "Permission For That ROle already exists" });
+    const info = await Permission.create(data);
+    res.status(201).json({ message: "Permission create succesfully" });
+  } catch (error) {
+    res.status(500).json({
+      message: "Permission creating error",
+      error: error.message ?? error,
+    });
+  }
+};
+
+// const updatePlane = async (req, res) => {
+//   try {
+//     const { price, durationInday, features } = req.body;
+//     const update = await _update(
+//       {
+//         price,
+//         durationInday,
+//         features,
+//       },
+//       {
+//         where: {
+//           id: req.params.id,
+//         },
+//       }
+//     );
+//     res.status(201).json({ message: "plane update succesfully" });
+//   } catch (error) {
+//     res
+//       .status(500)
+//       .json({ message: "plane updating error", error: error.message });
+//   }
+// };
+
+// const deletePlane = async (req, res) => {
+//   try {
+//     const { id } = req.params;
+//     const deleteplane = await destroy({ where: { id: id } });
+//     if (!deletePlane) return res.json({ message: "plane not found " });
+
+//     res.status(201).json({ message: "plane delete succesfully", deleteplane });
+//   } catch (error) {
+//     res.status(500).json({ message: "error", error: error.message });
+//   }
+// };
 
 const exportedModules = {
-  getTenantConnection,
   login,
   createUser,
+  createRole,
+  createModule,
+  createPermission,
 };
 export default exportedModules;
+export { getTenantConnection };
