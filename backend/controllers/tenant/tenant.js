@@ -16,19 +16,19 @@ import { Subscription, Tenants } from "../../models/master/association.js";
 import { tenantSeqelize } from "../../config/config.js";
 import { Op } from "sequelize";
 
-const getTenantConnection = async (email) => {
+const getTenantConnection = async (subdomain) => {
   try {
     // Find tenant in master database
     const tenant = await Tenants.findOne({
-      where: { email: email },
+      where: { [Op.and]: [{ email: subdomain }] },
     });
-
+    console.log(tenant.is_active, !tenant.is_active)
     if (!tenant) {
-      throw new Error("Tenant not found");
+      throw new Error("Domain not found");
     }
 
     if (!tenant.is_active) {
-      throw new Error("Tenant account is suspended. Please contact support.");
+      throw new Error("Domain account is suspended. Please contact support.");
     }
 
     // Check if subscription is active
@@ -66,7 +66,7 @@ const getTenantConnection = async (email) => {
     };
     // console.log(models)
     // Setup associations
-    // setupAssociations();
+    await setupAssociations(models);
 
     // Cache the connection
     // const connection = { sequelize, models };
@@ -79,11 +79,13 @@ const getTenantConnection = async (email) => {
 
 const login = async (req, res) => {
   try {
-    const { email, password } = req.body;
-
+    let {  email, subdomain, password } = req.body;
+    // [email, subdomain] = [subdomain, email];
     // Get tenant connection
     const { models, tenant } = await getTenantConnection(email);
     const { User, Role, Permission, Module } = models;
+    // [email, subdomain] = [subdomain, email];
+    console.log(email, subdomain)
     // console.log(models, "sfs");
 
     // Find user by email
@@ -125,35 +127,24 @@ const login = async (req, res) => {
     }
 
     // Get user permissions
-    // const permissions = await Permission.findAll({
-    //   where: { role_id: user.role_id },
-    //   include: [
-    //     {
-    //       model: Module,
-    //       as: "module",
-    //       attributes: ["module_id", "name", "slug"],
-    //     },
-    //   ],
-    // });
-
-    // Format permissions for frontend
-    // const userPermissions = permissions.reduce((acc, perm) => {
-    //   acc[perm.module.slug] = {
-    //     module_id: perm.module_id,
-    //     module_name: perm.module.name,
-    //     can_create: perm.can_create,
-    //     can_view: perm.can_view,
-    //     can_edit: perm.can_edit,
-    //     can_delete: perm.can_delete,
-    //   };
-    //   return acc;
-    // }, {});
+    const permissions = await Permission.findAll({
+      where: { role_id: user.role_id },
+      include: [
+        {
+          model: Module,
+          as: "module",
+          attributes: ["module_id", "name"],
+        },
+      ],
+    });
+    console.log(permissions);
 
     // JWT Payload
     const payload = {
       user_id: user.user_id,
       email: user.email,
       role_id: user.role_id,
+      subdomain : subdomain
     };
     // console.log(payload)
 
@@ -184,15 +175,15 @@ const login = async (req, res) => {
     res.status(200).json({
       message: `Welcome To, ${user.username}! :)`,
       data: {
-        user: user,
+        user: permissions,
         token: token,
       },
     });
   } catch (error) {
     console.error("Login error:", error);
     res.status(500).json({
-      error,
-      message: error.message || error,
+      error: error,
+      message: error.message,
     });
   }
 };
@@ -239,7 +230,7 @@ const createUser = async (req, res) => {
     }
 
     // Hash password
-    const hashedPassword = await bcrypt.hash(data.password, 10);
+    data.password = await bcrypt.hash(data.password, 10);
 
     // Create user
     const newUser = await User.create(data);

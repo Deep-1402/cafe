@@ -270,8 +270,8 @@ let login = async (req, res) => {
         log: "Invalid Email!! Try Again",
       });
     }
-    // let match = await bcrypt.compare(password, found.password);
-    let match = password == found.password;
+    let match = await bcrypt.compare(password, found.password);
+    // let match = password == found.password;
     if (!match) {
       res.status(500).json({
         log: "Invalid Password!!Try Again",

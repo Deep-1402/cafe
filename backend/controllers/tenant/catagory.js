@@ -81,17 +81,17 @@ const getCategoryById = async (req, res) => {
         {
           model: Dishes,
           as: "menus",
-          attributes: [
-            "menu_id",
-            "name",
-            "description",
-            "price",
-            "discount_price",
-            "image_url",
-            "is_available",
-            "is_vegetarian",
-            "is_spicy",
-          ],
+          // attributes: [
+          //   "menu_id",
+          //   "name",
+          //   "description",
+          //   "price",
+          //   "discount_price",
+          //   "image_url",
+          //   "is_available",
+          //   "is_vegetarian",
+          //   "is_spicy",
+          // ],
         },
       ],
     });
