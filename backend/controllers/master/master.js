@@ -122,6 +122,8 @@ const signUp = async (req, res) => {
       // Create tenant record in master DB
       let tenant = await Tenents.create(data);
 
+
+      //@@ Tenanat Db Creation PHAse
       // Create tenant database
       await sequelize.query(`CREATE DATABASE IF NOT EXISTS ${dbname}`);
 
@@ -149,12 +151,7 @@ const signUp = async (req, res) => {
 
       // Sync database
       await tenantSequelize.sync({ force: false });
-      // Seed default roles and permissions
-      // await seedTenantDefaults(tenantSequelize);
-
-      // Create admin user for tenant
-      // const adminRole = await models.Role.findOne({ where: { name: "Admin" } });
-      // console.log("ee");
+      // @@ Tanant Db Creation Phase OVer
 
       //@ Send OTP via email
       // const message = `

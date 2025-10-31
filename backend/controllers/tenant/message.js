@@ -1,19 +1,43 @@
 import { Op } from "sequelize";
+import { getTenantConnection } from "./tenant.js";
 // import { getTenantConnection } from "./tenant.js";
-const createRole = async (req, res) => {
+export const createMessage = async (req, res, data) => {
   try {
-    const data = req.body;
+    // console.log(data);
+    // const data = req.body;
     const { models } = await getTenantConnection(req.jwtData.email);
-    const { Role } = models;
+    const { Message, Chat } = models;
     // console.log(models, req.jwtData);
-    const exists = await Role.findOne({ where: { name: data.name } });
-    if (exists) return res.json({ message: "Role already exists" });
-    const info = await Role.create(data);
-    res.status(201).json({ message: "Role create succesfully" });
+
+    const [smallerId, largerId] = [data.sender, data.receiver].sort((a, b) => a - b);
+    let [exists, created] = await Chat.findOrCreate({
+      where: {
+        [Op.or]: [
+          { user1_id: smallerId, user2_id: largerId },
+          { user1_id: largerId, user2_id: smallerId },
+        ],
+      },
+      defaults: {
+        user1_id: smallerId,
+        user2_id: largerId,
+      },
+    });
+
+    if (!exists) {
+      exists = await Chat.create({
+        receiver_id: data.sender,
+        sender_id: data.receiver,
+      });
+    }
+    const info = await Message.create({
+      chat_id: exists.chat_id,
+      message: data.message,
+    });
+    console.log("Message Sent", exists.chat_id);
+    return exists.chat_id;
+    // res.status(201).json({ message: "Messege Sent create succesfully" });
   } catch (error) {
-    res
-      .status(500)
-      .json({ message: "Role creating error", error: error.message });
+    console.log("Message error", error);
   }
 };
 const createModule = async (req, res) => {
@@ -88,7 +112,6 @@ const createPermission = async (req, res) => {
 //   }
 // };
 export default {
-  createRole,
   createModule,
   createPermission,
   //   updatePlane,
