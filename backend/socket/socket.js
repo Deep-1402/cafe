@@ -1,4 +1,4 @@
-import { createMessage } from "../controllers/tenant/roles.js";
+// import message, { createMessage } from "../controllers/tenant/message.js";
 
 const Sockets = (io) => {
   io.on("connection", (socket) => {
@@ -12,7 +12,6 @@ const Sockets = (io) => {
         `\x1b[32m@User with ID: ${socket.id} joined room: ${chat_id} \x1b[0m`
       );
     });
-
     socket.on("send_message", async(data) => {
       //@@
       console.log(data,"dd")
@@ -20,7 +19,7 @@ const Sockets = (io) => {
       data.chat_id = await createMessage(data)
       console.log(data.chat_id)
       socket.emit("join_room", data.chat_id)
-      socket.to(data.chat_id).emit("send_message", data); //@@
+      io.to(parseInt(data.chat_id)).emit("receive", data.message); //@@
       // io.to(data.chat_id).emit("send_message", data); //@@
       // console.log(data, typeof data.chat_id);
       console.log(

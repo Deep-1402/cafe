@@ -122,6 +122,8 @@ const signUp = async (req, res) => {
       // Create tenant record in master DB
       let tenant = await Tenents.create(data);
 
+
+      //@@ Tenanat Db Creation PHAse
       // Create tenant database
       await sequelize.query(`CREATE DATABASE IF NOT EXISTS ${dbname}`);
 
@@ -149,12 +151,7 @@ const signUp = async (req, res) => {
 
       // Sync database
       await tenantSequelize.sync({ force: false });
-      // Seed default roles and permissions
-      // await seedTenantDefaults(tenantSequelize);
-
-      // Create admin user for tenant
-      // const adminRole = await models.Role.findOne({ where: { name: "Admin" } });
-      // console.log("ee");
+      // @@ Tanant Db Creation Phase OVer
 
       //@ Send OTP via email
       // const message = `
@@ -235,11 +232,11 @@ const signUp = async (req, res) => {
       });
       // console.log("ee");
       //@ Send OTP via email
-      let mail = await sendEmail(
-        data.email,
-        `Welcome to ${data.restaurant_name}`,
-        message
-      );
+      // let mail = await sendEmail(
+      //   data.email,
+      //   `Welcome to ${data.restaurant_name}`,
+      //   message
+      // );
       // console.log(info)
       res.status(201).json({
         message: "Tenant created successfully",
@@ -248,7 +245,7 @@ const signUp = async (req, res) => {
           restaurant_name: tenant.restaurant_name,
           subdomain: tenant.subdomain,
           db_name: tenant.db_name,
-          mail: mail,
+          // mail: mail,
         },
       });
     }

@@ -4,6 +4,7 @@ import authorize from "../middleware/authentication.js";
 import Admin from "../middleware/admin.js";
 import catagory from "../controllers/tenant/catagory.js";
 import menu from "../controllers/tenant/menu.js";
+import message from "../controllers/tenant/message.js";
 
 const router = express.Router();
 
@@ -33,5 +34,8 @@ router.post("/menu", authorize, menu.createDish);
 router.patch("/menu/:id", authorize, menu.updateDish);
 router.delete("/menu/:id", authorize, menu.deleteDish);
 router.get("/menu", authorize, menu.getAllAvailableDishes);
+
+// Message
+router.post("/message", authorize, message.sendMessage);
 
 export default router;

@@ -21,9 +21,11 @@ import Message from "../../models/tenant/message.js";
 
 const getTenantConnection = async (email) => {
   try {
+    // extract the subdomain
+    const subdomain = email.split("@")[1].split(".")[0];
     // Find tenant in master database
     const tenant = await Tenants.findOne({
-      where: { [Op.and]: [{ email: email }] },
+      where: { [Op.and]: [{ subdomain  }] },
     });
     // console.log(tenant.is_active, !tenant.is_active);
     if (!tenant) {
@@ -47,48 +49,85 @@ const getTenantConnection = async (email) => {
     const dbName = tenant.db_name;
 
     // Create new connection
-    const sequelize = tenantSeqelize(dbName);
-
-    // Test connection
-    let connected = await sequelize.authenticate();
-    // console.log(sequelize);
-
-    console.log("Tenent Connected SuccessFully");
-    // Initialize models
-    const models = {
-      Role: Roles(sequelize),
-      Permission: Permissions(sequelize),
-      User: tenantUsers(sequelize),
-      Category: Categories(sequelize),
-      Dishes: Dishes(sequelize),
-      Order: Orders(sequelize),
-      OrderItem: OrderItems(sequelize),
-      Billing: Billing(sequelize),
-      Feedback: Feedback(sequelize),
-      Module: Modules(sequelize),
-      Chat: Chat(sequelize),
-      Message: Message(sequelize),
-    };
+    const models = await tenantSeqelize(dbName);
     // console.log(models)
-    // Setup associations
-    await setupAssociations(models);
-
-    await sequelize.sync({ alter: true });
-    // Cache the connection
-    // const connection = { sequelize, models };
-
-    return { sequelize, models, tenant };
+    return {  models, tenant };
   } catch (error) {
     throw error;
   }
 };
+// const getTenantConnection = async (email) => {
+//   try {
+//     // extract the subdomain
+//     const subdomain = email.split("@")[1].split(".")[0];
+//     // Find tenant in master database
+//     const tenant = await Tenants.findOne({
+//       where: { [Op.and]: [{ subdomain  }] },
+//     });
+//     // console.log(tenant.is_active, !tenant.is_active);
+//     if (!tenant) {
+//       throw new Error("Domain not found");
+//     }
+
+//     if (!tenant.is_active) {
+//       throw new Error("Domain account is suspended. Please contact support.");
+//     }
+
+//     // Check if subscription is active
+//     // if (tenant.end_date && new Date(tenant.end_date) < new Date()) {
+//     //   throw new Error("Subscription expired. Please renew your plan.");
+//     // }
+
+//     // // Check if payment is done
+//     // if (!tenant.is_payment_done) {
+//     //   throw new Error("Payment pending. Please complete payment to continue.");
+//     // }
+
+//     const dbName = tenant.db_name;
+
+//     // Create new connection
+//     const sequelize = tenantSeqelize(dbName);
+
+//     // Test connection
+//     // let connected = await sequelize.authenticate();
+//     // console.log(sequelize);
+
+//     console.log("Tenent Connected SuccessFully");
+//     // Initialize models
+//     const models = {
+//       Role: Roles(sequelize),
+//       Permission: Permissions(sequelize),
+//       User: tenantUsers(sequelize),
+//       Category: Categories(sequelize),
+//       Dishes: Dishes(sequelize),
+//       Order: Orders(sequelize),
+//       OrderItem: OrderItems(sequelize),
+//       Billing: Billing(sequelize),
+//       Feedback: Feedback(sequelize),
+//       Module: Modules(sequelize),
+//       Chat: Chat(sequelize),
+//       Message: Message(sequelize),
+//     };
+//     // console.log(models)
+//     // Setup associations
+//     // await setupAssociations(models);
+
+//     // await sequelize.sync({ alter: true });
+//     // Cache the connection
+//     // const connection = { sequelize, models };
+
+//     return { sequelize, models, tenant };
+//   } catch (error) {
+//     throw error;
+//   }
+// };
 
 const login = async (req, res) => {
   try {
-    let { email, subdomain, password } = req.body;
+    let { email, password } = req.body;
     // [email, subdomain] = [subdomain, email];
     // Get tenant connection
-    const { models, tenant } = await getTenantConnection(email);
+    const { models } = await getTenantConnection(email);
     const { User, Role, Permission, Module } = models;
     // [email, subdomain] = [subdomain, email];
     // console.log(email, subdomain);
@@ -150,7 +189,6 @@ const login = async (req, res) => {
       user_id: user.user_id,
       email: user.email,
       role_id: user.role_id,
-      subdomain: subdomain,
     };
     // console.log(payload)
 
@@ -181,7 +219,7 @@ const login = async (req, res) => {
     res.status(200).json({
       message: `Welcome To, ${user.username}! :)`,
       data: {
-        user: permissions,
+         permissions,
         token: token,
       },
     });
