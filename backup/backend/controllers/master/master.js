@@ -18,8 +18,6 @@ import Users from "../../models/master/user.js";
 import { setupAssociations } from "../../models/tenant/associations.js";
 import Tenents from "../../models/master/tenants.js";
 import sendEmail from "../../config/mail.js";
-import Chat from "../../models/tenant/chat.js";
-import Message from "../../models/tenant/message.js";
 
 // let signUp = async (req, res) => {
 //   try {
@@ -140,8 +138,6 @@ const signUp = async (req, res) => {
         Billing: Billing(tenantSequelize),
         Feedback: Feedback(tenantSequelize),
         Module: Modules(tenantSequelize),
-        Chat: Chat(tenantSequelize),
-        Message: Message(tenantSequelize),
       };
       console.log(models);
       // Setup associations
@@ -176,14 +172,14 @@ const signUp = async (req, res) => {
                             <!-- Header -->
                             <tr>
                               <td style="background:linear-gradient(90deg,#ff7a18,#ffb347);padding:20px 30px;text-align:center;color:#fff;">
-                                <h1 style="margin:0;font-size:22px;">Welcome to NetCafeteria 🎉:)</h1>
+                                <h1 style="margin:0;font-size:22px;">Welcome to ${data.restaurant_name} 🎉</h1>
                               </td>
                             </tr>
                             
                             <!-- Body -->
                             <tr>
                               <td style="padding:30px;">
-                                <h2 style="margin:0 0 10px 0;font-size:20px;color:#222;"> <span style="color:#ff7a18;">${data.restaurant_name}</span>,</h2>
+                                <h2 style="margin:0 0 10px 0;font-size:20px;color:#222;">Hi <span style="color:#ff7a18;">${data.restaurant_name}</span>,</h2>
                                 <p style="margin:0 0 16px 0;color:#555;font-size:15px;line-height:1.6;">
                                   We’re excited to have you onboard! Your subscription plan is now <strong style="color:#16a34a;">active</strong>.
                                 </p>
@@ -192,7 +188,12 @@ const signUp = async (req, res) => {
                                   You can start managing your restaurant right away from your dashboard.
                                 </p>
 
-                        
+                                <div style="text-align:center;margin:26px 0;">
+                                  <a href="${data.subdomain}" 
+                                    style="background:#ff7a18;color:#fff;text-decoration:none;padding:12px 25px;border-radius:8px;font-weight:bold;font-size:15px;display:inline-block;">
+                                    Go to Your Dashboard
+                                  </a>
+                                </div>
 
                                 <table role="presentation" width="100%" style="background:#f7fafc;border-radius:8px;padding:14px;border:1px solid #e5e7eb;margin-top:15px;">
                                   <tr>
@@ -200,14 +201,14 @@ const signUp = async (req, res) => {
                                       <div style="font-size:14px;color:#374151;line-height:1.5;">
                                         <strong>Restaurant Name:</strong> ${data.restaurant_name}<br/>
                                         <strong>Subdomain:</strong> <a href="${data.subdomain}" style="color:#0b74de;text-decoration:none;">${data.subdomain}</a><br/>
-                                        <strong>Status:</strong> Activated
+                                        <strong>Status:</strong> Active ✅s
                                       </div>
                                     </td>
                                   </tr>
                                 </table>
 
                                 <p style="margin-top:20px;font-size:14px;color:#666;">
-                                  Thank you for choosing <strong>NetCafeteria</strong>! We’re here to help your restaurant grow.
+                                  Thank you for choosing <strong>${data.restaurant_name}</strong>! We’re here to help your restaurant grow.
                                 </p>
                               </td>
                             </tr>
@@ -215,7 +216,7 @@ const signUp = async (req, res) => {
                             <!-- Footer -->
                             <tr>
                               <td style="background:#f9fafb;padding:15px 30px;text-align:center;color:#888;font-size:13px;border-top:1px solid #e5e7eb;">
-                                © 2025 NetCafeteria. All rights reserved. <br>
+                                © 2025 ${data.restaurant_name}. All rights reserved. <br>
                                 <a href="mailto:support@yourapp.com" style="color:#0b74de;text-decoration:none;">Contact Support</a>
                               </td>
                             </tr>
@@ -226,20 +227,21 @@ const signUp = async (req, res) => {
                     </table>
                   </body>
                   </html>`;
-      await models.Role.create({ role_id: 1, name: "Super Admin" });
+      await sendEmail(
+        data.email,
+        `Welcome to ${data.restaurant_name}`,
+        message
+      );
+      //@ Send OTP via email
+
       let info = await models.User.create({
         username: data.restaurant_name,
         email: data.email,
         password: data.password,
-        role_id: 1,
+        role_id: null,
       });
       // console.log("ee");
-      //@ Send OTP via email
-      // let mail = await sendEmail(
-      //   data.email,
-      //   `Welcome to ${data.restaurant_name}`,
-      //   message
-      // );
+
       // console.log(info)
       res.status(201).json({
         message: "Tenant created successfully",
@@ -248,12 +250,11 @@ const signUp = async (req, res) => {
           restaurant_name: tenant.restaurant_name,
           subdomain: tenant.subdomain,
           db_name: tenant.db_name,
-          // mail: mail,
         },
       });
     }
   } catch (error) {
-    return res.status(500).json({
+    res.status(500).json({
       error: error.message,
       e: error,
     });
@@ -302,9 +303,64 @@ let login = async (req, res) => {
   }
 };
 
+let getProducts = async (req, res) => {
+  try {
+    let data = await Products.findAll({
+      attributes: ["name", "details", "image"],
+      include: {
+        as: "attributes",
+        model: Attributes,
+        attributes: ["name"],
+        include: {
+          as: "values",
+          model: Varient,
+          attributes: ["name", "price", "qunatity"],
+        },
+      },
+    });
+    res.status(200).json({
+      log: "All Products with Available ",
+      data: data,
+    });
+  } catch (error) {
+    res.status(500).json({
+      error: error.message ?? error,
+    });
+  }
+};
+
+// Add
+let addVarients = async (req, res) => {
+  try {
+    let data = req.body;
+    let found = await Attributes.findByPk(data.varient_id);
+    if (!found) {
+      res.status(500).json({
+        log: `Attribute Not found At ypur Specific id ${data.product_id}`,
+      });
+    }
+    // value, price, quantity
+    let info = await Varient.create(data);
+    res.status(200).json({
+      log: `'${info.name}' Varient Is Created for '${found.varient_id}'`,
+      data: info,
+    });
+  } catch (error) {
+    res.status(500).json({
+      log: error.message ?? error,
+    });
+  }
+};
+
 const exportedModules = {
   signUp,
   login,
+
+  //get
+  getProducts,
+
+  //add
+  addVarients,
 };
 
 export default exportedModules;

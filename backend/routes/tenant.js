@@ -8,6 +8,7 @@ import menu from "../controllers/tenant/menu.js";
 const router = express.Router();
 
 router.post("/login", tenant.login);
+router.post("/user/login", tenant.userLogin);
 router.post("/user", [authorize, Admin], tenant.createUser);
 
 //role
@@ -18,6 +19,7 @@ router.post("/module", [authorize, Admin], tenant.createModule);
 
 //permission
 router.post("/permission", [authorize, Admin], tenant.createPermission);
+router.get("/permission/:id", authorize, tenant.getPermisionByRoles);
 
 // Catgory
 router.post("/catagory", authorize, catagory.createCategory);

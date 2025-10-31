@@ -1,30 +1,19 @@
 import { Op } from "sequelize";
-import { getTanantConnection } from "./tenant.js";
 // import { getTenantConnection } from "./tenant.js";
-export const createMessage = async (data) => {
+const createRole = async (req, res) => {
   try {
-    console.log(data)
-    // const data = req.body;
-    const { models } = await getTanantConnection();
-    const { Message, Chat } = models;
+    const data = req.body;
+    const { models } = await getTenantConnection(req.jwtData.email);
+    const { Role } = models;
     // console.log(models, req.jwtData);
-    let exists = await Chat.findOne({
-      where: {
-        [Op.and]: [{ receiver_id: data.sender }, { sender_id: data.receiver }],
-      },
-    });
-    if (!exists) {
-      exists = await Chat.create({
-        receiver_id: data.sender,
-        sender_id: data.receiver,
-      });
-    }
-    const info = await Message.create({chat_id : exists.chat_id , message : data.message});
-    console.log("Message Sent", exists.chat_id)
-    return exists.chat_id
-    // res.status(201).json({ message: "Messege Sent create succesfully" });
+    const exists = await Role.findOne({ where: { name: data.name } });
+    if (exists) return res.json({ message: "Role already exists" });
+    const info = await Role.create(data);
+    res.status(201).json({ message: "Role create succesfully" });
   } catch (error) {
-    console.log("Message error", error)
+    res
+      .status(500)
+      .json({ message: "Role creating error", error: error.message });
   }
 };
 const createModule = async (req, res) => {
@@ -99,7 +88,7 @@ const createPermission = async (req, res) => {
 //   }
 // };
 export default {
-  
+  createRole,
   createModule,
   createPermission,
   //   updatePlane,

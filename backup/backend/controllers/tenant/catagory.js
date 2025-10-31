@@ -1,10 +1,9 @@
-import { Op } from "sequelize";
-import { getTenantConnection } from "./tenant.js";
+import { getTenantConnection } from "./tenant";
 
 const createCategory = async (req, res) => {
   try {
     const { name, description } = req.body;
-    const { models } = await getTenantConnection(req.jwtData.email);
+    const { models } = await getTenantConnection(req.user.email);
     const { Category } = models;
 
     // Check if category with same name exists
@@ -41,7 +40,7 @@ const createCategory = async (req, res) => {
 const getAllCategories = async (req, res) => {
   try {
     // Get tenant connection
-    const { models } = await getTenantConnection(req.jwtData.email);
+    const { models } = await getTenantConnection(req.user.email);
 
     const { Category, Dishes } = models;
 
@@ -54,6 +53,12 @@ const getAllCategories = async (req, res) => {
           attributes: ["menu_id", "name", "price", "is_available"],
         },
       ],
+      where: {
+        [Op.or]: [
+          { name: { [Op.like]: `%${search}%` } },
+          { description: { [Op.like]: `%${search}%` } },
+        ],
+      },
     });
 
     res.status(200).json({
@@ -73,7 +78,7 @@ const getCategoryById = async (req, res) => {
     const { id } = req.params;
 
     // Get tenant connection
-    const { models } = await getTenantConnection(req.jwtData.email);
+    const { models } = await getTenantConnection(req.user.email);
     const { Category, Dishes } = models;
 
     const category = await Category.findByPk(id, {
@@ -81,17 +86,17 @@ const getCategoryById = async (req, res) => {
         {
           model: Dishes,
           as: "menus",
-          // attributes: [
-          //   "menu_id",
-          //   "name",
-          //   "description",
-          //   "price",
-          //   "discount_price",
-          //   "image_url",
-          //   "is_available",
-          //   "is_vegetarian",
-          //   "is_spicy",
-          // ],
+          attributes: [
+            "menu_id",
+            "name",
+            "description",
+            "price",
+            "discount_price",
+            "image_url",
+            "is_available",
+            "is_vegetarian",
+            "is_spicy",
+          ],
         },
       ],
     });
@@ -120,7 +125,7 @@ const updateCategory = async (req, res) => {
     const data = req.body;
 
     // Get tenant connection
-    const { models } = await getTenantConnection(req.jwtData.email);
+    const { models } = await getTenantConnection(req.user.email);
     const { Category } = models;
 
     // Check if category exists
@@ -169,7 +174,7 @@ const deleteCategory = async (req, res) => {
     const { id } = req.params;
 
     // Get tenant connection
-    const { models } = await getTenantConnection(req.jwtData.email);
+    const { models } = await getTenantConnection(req.user.email);
     const { Category, Dishes } = models;
 
     // Check if category exists
