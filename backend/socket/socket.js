@@ -1,4 +1,4 @@
-import message, { createMessage } from "../controllers/tenant/message.js";
+// import message, { createMessage } from "../controllers/tenant/message.js";
 
 const Sockets = (io) => {
   io.on("connection", (socket) => {
@@ -12,7 +12,6 @@ const Sockets = (io) => {
         `\x1b[32m@User with ID: ${socket.id} joined room: ${chat_id} \x1b[0m`
       );
     });
-
     socket.on("send_message", async(data) => {
       //@@
       console.log(data,"dd")
