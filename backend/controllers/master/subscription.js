@@ -205,9 +205,12 @@ const getAllSubscription= async (req, res) => {
       });
     }
 
+    let info = { id : subscription.id , name : subscription.name}
+
     res.status(200).json({
       success: true,
       data: subscription,
+      info
     });
   } catch (error) {
     res.status(500).json({
