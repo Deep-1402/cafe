@@ -21,7 +21,7 @@ const MenuProvider = ({ children }) => {
   const createCategory = async (categoryData) => {
     setLoading(true)
     try {
-      const result = await api.post('catagory', categoryData)
+      const result = await api.post('tenant/catagory', categoryData)
 
       if (result.status === 200 || result.status === 201) {
         setMessage(result.data.message)
@@ -41,9 +41,10 @@ const MenuProvider = ({ children }) => {
   const getAllCategories = async () => {
     setLoading(true)
     try {
-      const result = await api.get('catagory')
+      const result = await api.get('tenant/catagory')
 
       if (result.status === 200) {
+        console.log(result.data.data)
         setCategories(result.data.data)
         return { success: true, data: result.data.data }
       }
@@ -60,7 +61,7 @@ const MenuProvider = ({ children }) => {
   const getCategoryById = async (id) => {
     setLoading(true)
     try {
-      const result = await api.get(`catagory/${id}`)
+      const result = await api.get(`tenant/catagory/${id}`)
 
       if (result.status === 200) {
         setSelectedCategory(result.data.data)
@@ -79,7 +80,7 @@ const MenuProvider = ({ children }) => {
   const updateCategory = async (id, categoryData) => {
     setLoading(true)
     try {
-      const result = await api.patch(`catagory/${id}`, categoryData)
+      const result = await api.patch(`tenant/catagory/${id}`, categoryData)
 
       if (result.status === 200) {
         setMessage(result.data.message)
@@ -102,7 +103,7 @@ const MenuProvider = ({ children }) => {
   const deleteCategory = async (id) => {
     setLoading(true)
     try {
-      const result = await api.delete(`catagory/${id}`)
+      const result = await api.delete(`tenant/catagory/${id}`)
 
       if (result.status === 200) {
         setMessage(result.data.message)
@@ -125,7 +126,7 @@ const MenuProvider = ({ children }) => {
   const createDish = async (dishData) => {
     setLoading(true)
     try {
-      const result = await api.post('menu', dishData)
+      const result = await api.post('tenant/menu', dishData)
 
       if (result.status === 200 || result.status === 201) {
         setMessage(result.data.message)
@@ -145,7 +146,7 @@ const MenuProvider = ({ children }) => {
   const getAllAvailableDishes = async () => {
     setLoading(true)
     try {
-      const result = await api.get('menu')
+      const result = await api.get('tenant/menu')
 
       if (result.status === 200) {
         setDishes(result.data.data)
@@ -165,7 +166,7 @@ const MenuProvider = ({ children }) => {
   const updateDish = async (id, dishData) => {
     setLoading(true)
     try {
-      const result = await api.patch(`menu/${id}`, dishData)
+      const result = await api.patch(`tenant/menu/${id}`, dishData)
 
       if (result.status === 200) {
         setMessage(result.data.message)
@@ -188,7 +189,7 @@ const MenuProvider = ({ children }) => {
   const deleteDish = async (id) => {
     setLoading(true)
     try {
-      const result = await api.delete(`menu/${id}`)
+      const result = await api.delete(`tenant/menu/${id}`)
 
       if (result.status === 200) {
         setMessage(result.data.message)

@@ -54,6 +54,12 @@ const Widgets = React.lazy(() => import('./views/widgets/Widgets'))
 // Tenants
 const Register = React.lazy(() => import('./views/pages/register/Register'))
 const getUsers = React.lazy(() => import('./views/pages/tenant/userList'))
+//catagory
+const getCatagory = React.lazy(() => import('./views/pages/tenant/catagory/catagoryList'))
+const createCatagory = React.lazy(() => import('./views/pages/tenant/catagory/catagoryUpdate'))
+const getMenu = React.lazy(() => import('./views/pages/tenant/menu/menuList'))
+const createMenu = React.lazy(() => import('./views/pages/tenant/menu/menuCreate'))
+
 
 const routes = [
   { path: '/', exact: true, name: 'Home' },
@@ -106,6 +112,12 @@ const routes = [
   // { path : "/tenant/get", name : "All Tenants", element : },
   // { path : "/subscription/create", name : "Create Subscription Plan", element : },
   { path: '/tenant/user/get', name: 'Get All Users', element: getUsers },
+  { path: '/tenant/catagory/get', name: 'All Catagory', element: getCatagory },
+  { path: '/tenant/catagory/:id?', name: 'All Catagory', element: createCatagory },
+  { path: '/tenant/menu/get', name: 'All Menu', element: getMenu },
+  { path: '/tenant/menu/:id?', name: 'Menu Create', element: createMenu },
+
+  // { path: '/tenant/catagory', element: <CategoryForm /> },
 ]
 
 export default routes
