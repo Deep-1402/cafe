@@ -11,6 +11,7 @@ const router = express.Router();
 router.post("/login", tenant.login);
 router.post("/user/login", tenant.userLogin);
 router.post("/user", [authorize, Admin], tenant.createUser);
+router.get("/user", [authorize], tenant.getUser);
 
 //role
 router.post("/role", [authorize, Admin], tenant.createRole);
@@ -39,3 +40,6 @@ router.get("/menu", authorize, menu.getAllAvailableDishes);
 router.post("/message", authorize, message.sendMessage);
 
 export default router;
+
+
+ 

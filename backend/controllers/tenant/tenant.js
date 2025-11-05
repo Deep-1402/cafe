@@ -25,7 +25,7 @@ const getTenantConnection = async (email) => {
     const subdomain = email.split("@")[1].split(".")[0];
     // Find tenant in master database
     const tenant = await Tenants.findOne({
-      where: { [Op.and]: [{ subdomain  }] },
+      where: { [Op.and]: [{ subdomain }] },
     });
     // console.log(tenant.is_active, !tenant.is_active);
     if (!tenant) {
@@ -51,7 +51,7 @@ const getTenantConnection = async (email) => {
     // Create new connection
     const models = await tenantSeqelize(dbName);
     // console.log(models)
-    return {  models, tenant };
+    return { models, tenant };
   } catch (error) {
     throw error;
   }
@@ -176,10 +176,17 @@ const login = async (req, res) => {
       where: { role_id: user.role_id },
       include: [
         {
-          model: Role,
-          as: "role",
-          attributes: ["role_id", "name"],
+          model: Module,
+          attributes: ["name"],
         },
+      ],
+      attributes: [
+        "can_create",
+        "can_delete",
+        "can_edit",
+        "can_view",
+        "module_id",
+        "role_id",
       ],
     });
     // console.log(permissions);
@@ -219,7 +226,7 @@ const login = async (req, res) => {
     res.status(200).json({
       message: `Welcome To, ${user.username}! :)`,
       data: {
-         permissions,
+        permissions,
         token: token,
       },
     });
@@ -263,9 +270,8 @@ export const getTanantConnection = async () => {
   // await sequelize.sync({alter:true});
   return { models };
 };
- 
 
- const userLogin = async (req, res) => {
+const userLogin = async (req, res) => {
   try {
     let { email, subdomain, password } = req.body;
     // [email, subdomain] = [subdomain, email];
@@ -544,6 +550,25 @@ const getPermisionByRoles = async (req, res) => {
     });
   }
 };
+const getUser = async (req, res) => {
+  try {
+    const { models, tenant } = await getTenantConnection(req.jwtData.email);
+    const { User, Role } = models;
+    const exists = await User.findAll({
+      include : {
+        model : Role,
+        as: "role",
+        attributes : ["name"]
+      }
+    });
+    res.status(200).json({ message: "Permission by Role", data: exists });
+  } catch (error) {
+    res.status(500).json({
+      message: "Permission creating error",
+      error: error.message ?? error,
+    });
+  }
+};
 
 // const updatePlane = async (req, res) => {
 //   try {
@@ -588,6 +613,7 @@ const exportedModules = {
   createPermission,
   getPermisionByRoles,
   userLogin,
+  getUser,
 };
 export default exportedModules;
 export { getTenantConnection };

@@ -206,8 +206,8 @@ const getAllSubscription= async (req, res) => {
     }
 
     res.status(200).json({
-      success: true,
-      data: subscription,
+      message: "Subscription Plans Fetched Successfully",
+      plans: subscription,
     });
   } catch (error) {
     res.status(500).json({
